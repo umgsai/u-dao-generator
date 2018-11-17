@@ -78,7 +78,7 @@
                                     </div>
                                 </div>
                                 <div class="layui-inline">
-                                    <button class="layui-btn" onClick="connect()">连接</button>
+                                    <button class="layui-btn" onClick="connect()">连接数据库</button>
                                 </div>
                             </div>
                         </form>
@@ -86,16 +86,22 @@
                 </div>
             </div>
             <div class="layui-container" style="width: 100%">
-                <div class="layui-row">
-                    <div class="layui-col-md3">
+                <div class="layui-row layui-col-space10">
+                    <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid;">
+                        <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-danger">生成DAO</a>
+                        <a class="layui-btn layui-btn-xs layui-btn-danger">生成TEST</a>
                         <div class="zTreeDemoBackground left">
                             <ul id="treeDemo" class="ztree"></ul>
                         </div>
                     </div>
-                    <div class="layui-col-md9">
+                    <div class="layui-col-md9" style="min-height: 500px; border: #8D8D8D 1px solid;">
                         你的内容 3/12
                     </div>
                 </div>
+
+
             </div>
 
 
@@ -112,52 +118,23 @@
 <!--<script src="/js/jquery-1.12.0.min.js"></script>-->
 <script src="/js/vue.min.js"></script>
 <script>
-    var setting = {};
-    var treeNoes = [
-        {
-            name: "SofaUser",
-            icon: "/css/zTreeStyle/img/database.png",
-            open: true,
-            children: [
-                {
-                    name: "t_user",
-                    icon: "/css/zTreeStyle/img/table.png",
-                    children: [
-                        {
-                            name: "id"
-                        },
-                        {
-                            name: "username"
-                        },
-                        {
-                            name: "password"
-                        }
-                    ]
-                },
-                {
-                    name: "t_test",
-                    icon: "/css/zTreeStyle/img/table.png",
-                    children: [
-                        {
-                            name: "id"
-                        },
-                        {
-                            name: "test_data"
-                        },
-                        {
-                            name: "add_time"
-                        },
-                        {
-                            name: "update_time"
-                        }
-                    ]
-                }
-            ]
+    var setting = {
+        check: {
+            enable: true,
+            nocheckInherit: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        callback: {
+            onCheck: onCheck
         }
-    ];
 
-
-    // $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+    };
+    var treeNoes = [];
+    var tree;
 
     var dbForm = new Vue({
         el: '#db-form',
@@ -168,11 +145,7 @@
             username: "root",
             password: "123456"
         },
-        methods: {
-            // connect: function() {
-            //     alert(this.data);
-            // }
-        }
+        methods: {}
     });
 
 
@@ -180,20 +153,11 @@
         let currentDbNode = getDbTreeNode(treeNoes, dbName);
         if (currentDbNode.open) {
             currentDbNode.open = false;
-            $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+            tree = $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
             return;
         } else {
             currentDbNode.open = true;
         }
-        // let currentDbNode = {};
-        // for (let i = 0; i < treeNoes.length; i++) {
-        //     console.log(treeNoes[i]);
-        //     if (treeNoes[i].name == dbName) {
-        //         // treeNoes[i].name.children = tablesNodes;
-        //         currentDbNode = treeNoes[i];
-        //         break;
-        //     }
-        // }
         let map = {};
         map = dbForm._data;
         map.dbName = dbName;
@@ -201,27 +165,57 @@
             type: "get",
             url: "/getTableNameList",
             data: dbForm._data,
-            success: function (data) {
-                console.log(data);
-                if (!data || data.length == 0) {
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                    return;
+                }
+                if (dataResult.data.length == 0) {
                     layui.layer.msg("未查询到表！");
                     return;
                 }
-                var tablesNodes = [];
+                let tablesNodes = [];
+                let data = dataResult.data;
                 for (let i = 0; i < data.length; i++) {
                     tablesNodes.push({
                         name: data[i],
                         click: "chooseTable(this)",
                         icon: "/css/zTreeStyle/img/table.png",
                         open: false,
+                        type: "table",
                         children: []
                     });
 
                 }
                 currentDbNode.children = tablesNodes;
-                $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
             }
         });
+    };
+
+    function onCheck(event, treeId, treeNode) {
+        let parentNode = treeNode.getParentNode();
+        let type = treeNode.type;
+        let dbName = "";
+        if (type != "db") {
+            return;
+        }
+        if (!treeNode.checked) {
+            return;
+        }
+        let treeNodes = tree.getNodes();
+        let checkCount = 0;
+        for (let i = 0; i < treeNodes.length; i++) {
+            if (treeNodes[i].checked) {
+                checkCount++;
+            }
+        }
+        console.log(checkCount);
+        //如果选中的表多于1，则反选其他已选中的db，保证每次只能选中一个DB
+        if (checkCount > 1) {
+            tree.checkAllNodes(false);
+            tree.checkNode(treeNode, true, true, true);
+        }
     };
 
     var chooseTable = function (tableNode) {
@@ -231,7 +225,7 @@
         let tableTreeNode = getTableTreeNode(dbTreeNode, tableName);
         if (tableTreeNode.open) {
             tableTreeNode.open = false;
-            $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+            tree = $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
             return;
         } else {
             tableTreeNode.open = true;
@@ -245,21 +239,26 @@
             type: "get",
             url: "/getTableColumnList",
             data: dbForm._data,
-            success: function (data) {
-                console.log(data);
-
-                console.log(tableTreeNode);
-                tableTreeNode.children = [];
-                if (!data || data.length == 0) {
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
                     return;
                 }
+                if (dataResult.data.length == 0) {
+                    layui.layer.msg("未查询到字段");
+                    return;
+                }
+                tableTreeNode.children = [];
+                let data = dataResult.data;
                 for (let i = 0; i < data.length; i++) {
                     tableTreeNode.children.push({
                         name: data[i].columnName + " " + "[" + data[i].columnType + "]",
-                        open: false,
+                        nocheck: true,
+                        type: "column",
+                        open: false
                     });
                 }
-                $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
             }
         });
     };
@@ -293,22 +292,27 @@
             type: "get",
             url: "/getDbNameList",
             data: dbForm._data,
-            success: function (data) {
-                console.log(data);
-                if (!data || data.length == 0) {
-                    layui.layer.msg("未查询到数据库！");
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                    return;
+                }
+                if (dataResult.length == 0) {
+                    layui.layer.msg("未查询到数据库");
                     return;
                 }
                 treeNoes = [];
+                let data = dataResult.data;
                 for (let i = 0; i < data.length; i++) {
                     treeNoes.push({
                         name: data[i],
                         click: "chooseDb('" + data[i] + "')",
                         icon: "/css/zTreeStyle/img/database.png",
                         open: false,
+                        type: "db",
                         children: []
                     });
-                    $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+                    tree = $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
                 }
             }
         });

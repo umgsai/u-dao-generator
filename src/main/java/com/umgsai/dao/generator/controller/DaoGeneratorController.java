@@ -4,20 +4,10 @@
  */
 package com.umgsai.dao.generator.controller;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.umgsai.dao.generator.dao.MySQLManager;
-import com.umgsai.dao.generator.data.JavaClass;
-import com.umgsai.dao.generator.data.TableColumn;
-import com.umgsai.dao.generator.util.ConvertUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -35,8 +25,7 @@ public class DaoGeneratorController {
     @ResponseBody
     @RequestMapping("/getTableColumnList")
     public Object getTableColumnList(String host, String port, String username, String password, String dbName, String tableName) {
-        List<TableColumn> tableColumnList = MySQLManager.getTableColumnList(host, port, username, password, dbName, tableName);
-        return tableColumnList;
+        return MySQLManager.getTableColumnList(host, port, username, password, dbName, tableName);
         //List<JavaClass> javaClassList = Lists.transform(tableColumnList, new Function<TableColumn, JavaClass>() {
         //    @Nullable
         //    @Override
