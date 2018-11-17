@@ -1,4 +1,4 @@
-package com.umgsai.udaogenerator;
+package com.umgsai.dao.generator;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

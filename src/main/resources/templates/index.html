@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="Cache" content="no-cache">
+
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>DaoGenerator</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/zTreeStyle/zTreeStyle.css" media="all">
+</head>
+<body>
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">DB工具</li>
+        <li>用户管理</li>
+        <li>权限分配</li>
+        <li>商品管理</li>
+        <li>订单管理</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-container" style="width: 100%">
+                <div class="layui-row">
+                    <div class="layui-col-md12" id="db-form">
+                        <form class="layui-form" action="javascript:void(0)">
+
+                            <div class="layui-form-item">
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">DB类型</label>
+                                    <div class="layui-input-inline">
+                                        <select v-model="dbType">
+                                            <option value="MySQL">MySQL</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">Host</label>
+                                    <div class="layui-input-inline">
+                                        <!--<select name="modules" lay-verify="required" lay-search="">-->
+                                        <!--<option value="">直接选择或搜索选择</option>-->
+                                        <!--</select>-->
+                                        <div class="layui-input-inline">
+                                            <input type="text" v-model="host" required lay-verify="required" placeholder="127.0.0.1"
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">port</label>
+                                    <div class="layui-input-inline">
+                                        <div class="layui-input-inline">
+                                            <input type="number" v-model="port" required lay-verify="required" placeholder="3306"
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">用户名</label>
+                                    <div class="layui-input-inline">
+                                        <div class="layui-input-inline">
+                                            <input type="text" v-model="username" required lay-verify="required" placeholder="root"
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">密码</label>
+                                    <div class="layui-input-inline">
+                                        <div class="layui-input-inline">
+                                            <input type="text" v-model="password" required lay-verify="required" placeholder=""
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <button class="layui-btn" onClick="connect()">连接</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-container" style="width: 100%">
+                <div class="layui-row">
+                    <div class="layui-col-md3">
+                        <div class="zTreeDemoBackground left">
+                            <ul id="treeDemo" class="ztree"></ul>
+                        </div>
+                    </div>
+                    <div class="layui-col-md9">
+                        你的内容 3/12
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="layui-tab-item">内容2</div>
+        <div class="layui-tab-item">内容3</div>
+        <div class="layui-tab-item">内容4</div>
+        <div class="layui-tab-item">内容5</div>
+    </div>
+</div>
+
+<script src="/layui/layui.js"></script>
+<script src="/js/jquery-3.3.1.min.js"></script>
+<!--<script src="/js/jquery-1.12.0.min.js"></script>-->
+<script src="/js/vue.min.js"></script>
+<script>
+    var setting = {};
+    var treeNoes = [
+        {
+            name: "SofaUser",
+            icon: "/css/zTreeStyle/img/database.png",
+            open: true,
+            children: [
+                {
+                    name: "t_user",
+                    icon: "/css/zTreeStyle/img/table.png",
+                    children: [
+                        {
+                            name: "id"
+                        },
+                        {
+                            name: "username"
+                        },
+                        {
+                            name: "password"
+                        }
+                    ]
+                },
+                {
+                    name: "t_test",
+                    icon: "/css/zTreeStyle/img/table.png",
+                    children: [
+                        {
+                            name: "id"
+                        },
+                        {
+                            name: "test_data"
+                        },
+                        {
+                            name: "add_time"
+                        },
+                        {
+                            name: "update_time"
+                        }
+                    ]
+                }
+            ]
+        }
+    ];
+
+
+    // $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+
+    var dbForm = new Vue({
+        el: '#db-form',
+        data: {
+            dbType: "MySQL",
+            host: "localhost",
+            port: "3306",
+            username: "root",
+            password: "123456"
+        },
+        methods: {
+            // connect: function() {
+            //     alert(this.data);
+            // }
+        }
+    });
+
+
+    var chooseDb = function (dbName) {
+        let currentDbNode = getDbTreeNode(treeNoes, dbName);
+        if (currentDbNode.open) {
+            currentDbNode.open = false;
+            $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+            return;
+        } else {
+            currentDbNode.open = true;
+        }
+        // let currentDbNode = {};
+        // for (let i = 0; i < treeNoes.length; i++) {
+        //     console.log(treeNoes[i]);
+        //     if (treeNoes[i].name == dbName) {
+        //         // treeNoes[i].name.children = tablesNodes;
+        //         currentDbNode = treeNoes[i];
+        //         break;
+        //     }
+        // }
+        let map = {};
+        map = dbForm._data;
+        map.dbName = dbName;
+        $.ajax({
+            type: "get",
+            url: "/getTableNameList",
+            data: dbForm._data,
+            success: function (data) {
+                console.log(data);
+                if (!data || data.length == 0) {
+                    layui.layer.msg("未查询到表！");
+                    return;
+                }
+                var tablesNodes = [];
+                for (let i = 0; i < data.length; i++) {
+                    tablesNodes.push({
+                        name: data[i],
+                        click: "chooseTable(this)",
+                        icon: "/css/zTreeStyle/img/table.png",
+                        open: false,
+                        children: []
+                    });
+
+                }
+                currentDbNode.children = tablesNodes;
+                $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+            }
+        });
+    };
+
+    var chooseTable = function (tableNode) {
+        let dbName = $(tableNode).parent().parent().parent().find("a").attr("title");
+        let tableName = $(tableNode).text();
+        let dbTreeNode = getDbTreeNode(treeNoes, dbName);
+        let tableTreeNode = getTableTreeNode(dbTreeNode, tableName);
+        if (tableTreeNode.open) {
+            tableTreeNode.open = false;
+            $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+            return;
+        } else {
+            tableTreeNode.open = true;
+        }
+        let map = {};
+        map = dbForm._data;
+        map.dbName = dbName;
+        map.tableName = tableName;
+        // layui.layer.msg(dbName + tableName);
+        $.ajax({
+            type: "get",
+            url: "/getTableColumnList",
+            data: dbForm._data,
+            success: function (data) {
+                console.log(data);
+
+                console.log(tableTreeNode);
+                tableTreeNode.children = [];
+                if (!data || data.length == 0) {
+                    return;
+                }
+                for (let i = 0; i < data.length; i++) {
+                    tableTreeNode.children.push({
+                        name: data[i].columnName + " " + "[" + data[i].columnType + "]",
+                        open: false,
+                    });
+                }
+                $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+            }
+        });
+    };
+
+    var getDbTreeNode = function (treeNodes, dbName) {
+        for (let i = 0; i < treeNoes.length; i++) {
+            console.log(treeNoes[i]);
+            if (treeNoes[i].name == dbName) {
+                return treeNoes[i];
+            }
+        }
+        return {};
+    };
+
+    var getTableTreeNode = function (dbTreeNode, tableName) {
+        if (!dbTreeNode.children || dbTreeNode.children.length == 0) {
+            return {};
+        }
+        for (let i = 0; i < dbTreeNode.children.length; i++) {
+            console.log(dbTreeNode[i]);
+            if (dbTreeNode.children[i].name == tableName) {
+                return dbTreeNode.children[i];
+            }
+        }
+        return {};
+    };
+
+    var connect = function () {
+        console.log(dbForm._data);
+        $.ajax({
+            type: "get",
+            url: "/getDbNameList",
+            data: dbForm._data,
+            success: function (data) {
+                console.log(data);
+                if (!data || data.length == 0) {
+                    layui.layer.msg("未查询到数据库！");
+                    return;
+                }
+                treeNoes = [];
+                for (let i = 0; i < data.length; i++) {
+                    treeNoes.push({
+                        name: data[i],
+                        click: "chooseDb('" + data[i] + "')",
+                        icon: "/css/zTreeStyle/img/database.png",
+                        open: false,
+                        children: []
+                    });
+                    $.fn.zTree.init($("#treeDemo"), setting, treeNoes);
+                }
+            }
+        });
+    };
+
+
+    layui.use(['element', 'form', 'layer'], function () {
+        var element = layui.element;
+
+
+    });
+</script>
+<script src="/js/jquery.ztree.all.min.js"></script>
+</body>
+</html>
