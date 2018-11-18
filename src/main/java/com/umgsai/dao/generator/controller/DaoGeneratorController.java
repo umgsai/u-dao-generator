@@ -52,4 +52,12 @@ public class DaoGeneratorController {
     public Object getDbNameList(String host, String port, String username, String password) {
         return MySQLManager.getDbNameList(host, port, username, password);
     }
+
+
+    @ResponseBody
+    @RequestMapping("/exeSql")
+    public Object exeSql(String host, String port, String username, String password, String dbName, String sql) {
+        return MySQLManager.executeSql(host, port, username, password, dbName, sql);
+    }
+
 }

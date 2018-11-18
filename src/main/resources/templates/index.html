@@ -12,6 +12,10 @@
     <title>DaoGenerator</title>
     <link rel="stylesheet" href="/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/css/zTreeStyle/zTreeStyle.css" media="all">
+
+    <link href="/codemirror/lib/codemirror.css" rel="stylesheet" type="text/css">
+    <link href="/codemirror/theme/monokai.css" rel="stylesheet" type="text/css">
+    <link href="/codemirror/addon/display/fullscreen.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 <div class="layui-tab">
@@ -85,19 +89,32 @@
                     </div>
                 </div>
             </div>
-            <div class="layui-container" style="width: 100%">
+            <div class="layui-container" style="width: 100%" id="sql-console">
                 <div class="layui-row layui-col-space10">
                     <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid;">
-                        <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-danger">生成DAO</a>
-                        <a class="layui-btn layui-btn-xs layui-btn-danger">生成TEST</a>
+                        <blockquote class="layui-elem-quote">
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成DAO</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成TEST</a>
+                        </blockquote>
                         <div class="zTreeDemoBackground left">
                             <ul id="treeDemo" class="ztree"></ul>
                         </div>
                     </div>
                     <div class="layui-col-md9" style="min-height: 500px; border: #8D8D8D 1px solid;">
-                        你的内容 3/12
+                        <blockquote class="layui-elem-quote" style="margin-bottom: 0px">
+                            <a class="layui-btn layui-btn-xs layui-btn-danger" href="javascript:void(0)" onclick="exeSql()">
+                                执行
+                                <i class="layui-icon layui-icon-triangle-r"></i>
+                            </a>
+                        </blockquote>
+                        <!--<textarea name="code" id="code" placeholder="请输入内容" class="layui-textarea code" ></textarea>-->
+                        <textarea id="code" name="code">SELECT * FROM</textarea>
+
+                        <blockquote class="layui-elem-quote">
+                            {{message}}
+                        </blockquote>
                     </div>
                 </div>
 
@@ -144,6 +161,16 @@
             port: "3306",
             username: "root",
             password: "123456"
+        },
+        methods: {}
+    });
+
+    var dbConsole = new Vue({
+        el: '#sql-console',
+        data: {
+            sqlType: "DQL",
+            success: true,
+            message: "text"
         },
         methods: {}
     });
@@ -318,13 +345,133 @@
         });
     };
 
+    function getSelectText() {
+        var t = document.getElementById("code");
+        if (window.getSelection) {
+            if (t.selectionStart != undefined && t.selectionEnd != undefined) {
+                return t.value.substring(t.selectionStart, t.selectionEnd);
+            } else {
+                return "";
+            }
+        } else {
+            return document.selection.createRange().text;
+        }
+    }
+
+    function exeSql() {
+        // let sql = getSelectText();
+        let sql = editor.getSelection();
+        if (!sql || sql.length == 0) {
+            layui.layer.msg("请选中要执行的SQL");
+            return;
+        }
+        dbForm._data.dbName = "SofaTest";
+        dbForm._data.sql = sql;
+        $.ajax({
+            type: "get",
+            url: "/exeSql",
+            data: dbForm._data,
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                }
+                let sqlType = dataResult.data.sqlType;
+                if (sqlType == "DML") {
+                    layui.layer.msg(dataResult.data.message);
+                    dbConsole._data.message = dataResult.data.message;
+                    return;
+                }
+                console.log(dataResult);
+            }
+        });
+
+    }
+
 
     layui.use(['element', 'form', 'layer'], function () {
         var element = layui.element;
 
 
     });
+
+
 </script>
+<!--<link rel="stylesheet"-->
+<!--href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/default.min.css">-->
+<!--<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>-->
+<!--Request URL:https://s1.tool.lu/js/comment/main.bundle.css?t=1510998813261-->
+<!--<link rel="stylesheet" href="//s1.tool.lu/js/comment/main.bundle.css">-->
+<!-- 引入CodeMirror核心文件 -->
+
+
 <script src="/js/jquery.ztree.all.min.js"></script>
+
+
+<link rel="stylesheet" href="/codemirror/lib/codemirror.css"/>
+<script src="/codemirror/lib/codemirror.js"></script>
+<script src="/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="codemirror/mode/sql/sql.js"></script>
+<link rel="stylesheet" href="/codemirror/addon/hint/show-hint.css"/>
+<script src="/codemirror/addon/hint/show-hint.js"></script>
+<script src="/codemirror/addon/hint/sql-hint.js"></script>
+
+<script>
+    function completeIfInTag(cm) {
+        return completeAfter(cm, function () {
+            var tok = cm.getTokenAt(cm.getCursor());
+            if (tok.type == "string" && (!/['"]/.test(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
+            var inner = CodeMirror.innerMode(cm.getMode(), tok.state).state;
+            return inner.tagName;
+        });
+    }
+
+    function completeAfter(cm, pred) {
+        var cur = cm.getCursor();
+        if (!pred || pred()) setTimeout(function () {
+            if (!cm.state.completionActive)
+                cm.showHint({
+                    completeSingle: false
+                });
+        }, 100);
+        return CodeMirror.Pass;
+    }
+
+    window.onload = function () {
+        window.editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+            // mode: mime,
+            indentWithTabs: true,
+            smartIndent: true,
+            lineNumbers: true,
+            matchBrackets: true,
+            autofocus: true,
+            // extraKeys: {"Ctrl-Space": "autocomplete"},
+            extraKeys: {
+                "Ctrl": "autocomplete"
+            },
+            mode: {name: "text/x-mysql"},
+            // theme: "ambiance",
+            hintOptions: {
+                // http://www.mamicode.com/info-detail-2243638.html
+                // tables: result.data,
+                tables: {
+                    "table1": [
+                        "col1", "col2"
+                    ],
+                    "table2": ["col1", "col2"]
+                },
+                Tab: function (cm) {
+                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces);
+                }
+            }
+        });
+        window.editor.on("keyup", function (cm, event) {
+            if (!cm.state.completionActive &&
+                ((event.keyCode >= 65 && event.keyCode <= 90) || event.keyCode == 52 || event.keyCode == 219 || event.keyCode == 190 || event.keyCode == 32)) {
+                CodeMirror.commands.autocomplete(cm, null, {completeSingle: false});
+            }
+        });
+    }
+</script>
 </body>
 </html>

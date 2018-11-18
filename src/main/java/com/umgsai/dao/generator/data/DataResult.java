@@ -91,7 +91,7 @@ public class DataResult<T> implements Serializable {
      *
      * @param message  value to be assigned to property message
      */
-    private void setMessage(String message) {
+    public void setMessage(String message) {
         this.message = message;
     }
 

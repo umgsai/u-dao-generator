@@ -6,9 +6,13 @@ package com.umgsai.dao.generator.util;
 
 import com.google.common.base.CaseFormat;
 import com.umgsai.dao.generator.config.ConfigData;
+import com.umgsai.dao.generator.data.DataResult;
 import com.umgsai.dao.generator.data.JavaClass;
+import com.umgsai.dao.generator.data.SqlType;
 import com.umgsai.dao.generator.data.TableColumn;
 import org.springframework.util.StringUtils;
+
+import java.sql.ResultSet;
 
 /**
  *
