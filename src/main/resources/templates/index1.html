@@ -111,7 +111,7 @@
             </form>
             <div class="layui-container" style="width: 100%" id="sql-console">
                 <div class="layui-row layui-col-space10">
-                    <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid;">
+                    <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid;overflow: hidden; overflow-x: auto;">
                         <blockquote class="layui-elem-quote">
                             <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
                             <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
@@ -160,6 +160,9 @@
             enable: true,
             nocheckInherit: true
         },
+        view: {
+            dblClickExpand: false
+        },
         data: {
             simpleData: {
                 enable: true
@@ -168,6 +171,8 @@
         callback: {
             onCheck: onCheck,
             onClick: onclickTree,
+            onCollapse: onCollapse,
+            onExpand: onExpand
         },
         async: {
             enable: true,
@@ -194,16 +199,43 @@
         $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
     }, 200);
 
-    function onclickTree(event, treeId, treeNode) {
-        console.log(event);
-        console.log(treeNode);
-        if (treeNode.type != "table") {
-            return;
-        }
+    function onCollapse(event, treeId, treeNode) {
+        console.log(treeNode.tId + ", " + treeNode.name);
+    };
+
+    function onExpand(event, treeId, treeNode) {
+        console.log("展开：" + treeNode.tId + ", " + treeNode.name);
         if (treeNode.children.length > 0) {
             return;
         }
+        console.log("加载子节点....");
+        onclickTree(event, treeId, treeNode);
+    };
+
+
+    function onclickTree(event, treeId, treeNode) {
+        console.log(event);
+        console.log(treeNode);
+        if (treeNode.open) {
+            treeNode.open = false;
+        } else {
+            treeNode.open = true;
+        }
+        if (treeNode.type != "table") {
+            return;
+        }
         let tableName = treeNode.name;
+        if (treeNode.children.length > 0) {
+            let tableNodes = treeNodes[0].children;
+            for (let i = 0; i < tableNodes.length; i++) {
+                if (tableNodes[i].name == tableName) {
+                    tableNodes[i].open = treeNode.open;
+                    tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+                    break;
+                }
+            }
+            return;
+        }
         let dbName = treeNode.getParentNode().name;
         let map = {};
         map = dbForm._data;
@@ -236,10 +268,13 @@
                 for (let i = 0; i < tableNodes.length; i++) {
                     if (tableNodes[i].name == tableName) {
                         tableNodes[i].children = treeNode.children;
+                        tableNodes[i].open = true;
+                        // tree.reAsyncChildNodes(tableNodes[i], "refresh");
+                        tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
                         break;
                     }
                 }
-                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+
             }
         });
     }
@@ -263,6 +298,13 @@
             password: "123456",
             dbName: "",
             dbNameList: []
+        }, watch: {
+            dbNameList(newValue, oldValue) {
+                if (!newValue || newValue.length == 0) {
+                    return;
+                }
+                this.dbName = newValue[0];
+            }
         },
         methods: {}
     });
@@ -276,51 +318,6 @@
         },
         methods: {}
     });
-
-
-    var chooseDb = function (dbName) {
-        let currentDbNode = getDbTreeNode(treeNodes, dbName);
-        if (currentDbNode.open) {
-            currentDbNode.open = true;
-            tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
-            return;
-        } else {
-            currentDbNode.open = true;
-        }
-        let map = {};
-        map = dbForm._data;
-        map.dbName = dbName;
-        $.ajax({
-            type: "get",
-            url: "/getTableNameList",
-            data: dbForm._data,
-            success: function (dataResult) {
-                if (!dataResult.success) {
-                    layui.layer.alert(dataResult.message);
-                    return;
-                }
-                if (dataResult.data.length == 0) {
-                    layui.layer.msg("未查询到表！");
-                    return;
-                }
-                let tablesNodes = [];
-                let data = dataResult.data;
-                for (let i = 0; i < data.length; i++) {
-                    tablesNodes.push({
-                        name: data[i],
-                        // click: "chooseTable(this)",
-                        icon: "/css/zTreeStyle/img/table.png",
-                        open: true,
-                        type: "table",
-                        children: []
-                    });
-
-                }
-                currentDbNode.children = tablesNodes;
-                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
-            }
-        });
-    };
 
     function getTableNameList(dbName) {
         $.ajax({
@@ -346,7 +343,7 @@
                     rootNode.children.push({
                         name: data[i],
                         icon: "/css/zTreeStyle/img/table.png",
-                        open: true,
+                        open: false,
                         type: "table",
                         children: []
                     });
@@ -385,74 +382,6 @@
         }
     };
 
-    var chooseTable = function (tableNode) {
-        let dbName = $(tableNode).parent().parent().parent().find("a").attr("title");
-        let tableName = $(tableNode).text();
-        let dbTreeNode = getDbTreeNode(treeNodes, dbName);
-        let tableTreeNode = getTableTreeNode(dbTreeNode, tableName);
-        if (tableTreeNode.open) {
-            tableTreeNode.open = true;
-            tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
-            return;
-        } else {
-            tableTreeNode.open = true;
-        }
-        let map = {};
-        map = dbForm._data;
-        map.dbName = dbName;
-        map.tableName = tableName;
-        // layui.layer.msg(dbName + tableName);
-        $.ajax({
-            type: "get",
-            url: "/getTableColumnList",
-            data: dbForm._data,
-            success: function (dataResult) {
-                if (!dataResult.success) {
-                    layui.layer.alert(dataResult.message);
-                    return;
-                }
-                if (dataResult.data.length == 0) {
-                    layui.layer.msg("未查询到字段");
-                    return;
-                }
-                tableTreeNode.children = [];
-                let data = dataResult.data;
-                for (let i = 0; i < data.length; i++) {
-                    tableTreeNode.children.push({
-                        name: data[i].columnName + " " + "[" + data[i].columnType + "]",
-                        nocheck: true,
-                        type: "column",
-                        open: true
-                    });
-                }
-                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
-            }
-        });
-    };
-
-    var getDbTreeNode = function (treeNodes, dbName) {
-        for (let i = 0; i < treeNodes.length; i++) {
-            console.log(treeNodes[i]);
-            if (treeNodes[i].name == dbName) {
-                return treeNodes[i];
-            }
-        }
-        return {};
-    };
-
-    var getTableTreeNode = function (dbTreeNode, tableName) {
-        if (!dbTreeNode.children || dbTreeNode.children.length == 0) {
-            return {};
-        }
-        for (let i = 0; i < dbTreeNode.children.length; i++) {
-            console.log(dbTreeNode[i]);
-            if (dbTreeNode.children[i].name == tableName) {
-                return dbTreeNode.children[i];
-            }
-        }
-        return {};
-    };
-
     var connect = function () {
         console.log(dbForm._data);
         $.ajax({
@@ -474,18 +403,7 @@
                 setTimeout(function () {
                     layui.form.render('select');
                 }, 200);
-                return;
-                for (let i = 0; i < data.length; i++) {
-                    treeNodes.push({
-                        name: data[i],
-                        // click: "chooseDb('" + data[i] + "')",
-                        icon: "/css/zTreeStyle/img/database.png",
-                        open: true,
-                        type: "db",
-                        children: []
-                    });
-                    tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
-                }
+                layui.layer.msg("连接服务器成功！");
             }
         });
     };
