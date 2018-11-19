@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="Cache" content="no-cache">
+
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>DaoGenerator</title>
+    <link rel="stylesheet" href="/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/css/zTreeStyle/zTreeStyle.css" media="all">
+    <link rel="stylesheet" href="/css/main.css">
+
+    <link href="/codemirror/lib/codemirror.css" rel="stylesheet" type="text/css">
+    <link href="/codemirror/theme/monokai.css" rel="stylesheet" type="text/css">
+    <link href="/codemirror/addon/display/fullscreen.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">DB工具</li>
+        <li>用户管理</li>
+        <li>权限分配</li>
+        <li>商品管理</li>
+        <li>订单管理</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <form class="layui-form" action="javascript:void(0)">
+                <div class="layui-container" style="width: 100%" id="db-form">
+                    <div class="layui-row">
+                        <div class="layui-col-md12">
+
+                            <div class="layui-form-item">
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">DB类型</label>
+                                    <div class="layui-input-inline">
+                                        <select v-model="dbType">
+                                            <option value="MySQL">MySQL</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">Host</label>
+                                    <div class="layui-input-inline">
+                                        <!--<select name="modules" lay-verify="required" lay-search="">-->
+                                        <!--<option value="">直接选择或搜索选择</option>-->
+                                        <!--</select>-->
+                                        <div class="layui-input-inline">
+                                            <input type="text" v-model="host" required lay-verify="required" placeholder="127.0.0.1"
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">port</label>
+                                    <div class="layui-input-inline">
+                                        <div class="layui-input-inline">
+                                            <input type="number" v-model="port" required lay-verify="required" placeholder="3306"
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">用户名</label>
+                                    <div class="layui-input-inline">
+                                        <div class="layui-input-inline">
+                                            <input type="text" v-model="username" required lay-verify="required" placeholder="root"
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">密码</label>
+                                    <div class="layui-input-inline">
+                                        <div class="layui-input-inline">
+                                            <input type="text" v-model="password" required lay-verify="required" placeholder=""
+                                                   autocomplete="off" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-inline">
+                                    <button class="layui-btn" onClick="connect()">连接服务器</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row">
+                        <div class="layui-col-md6">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" style="width: 100px">选择数据库</label>
+                                <div class="layui-input-block">
+                                    <!--<select name="dbList" lay-verify="required">-->
+                                    <!--<option value=""></option>-->
+                                    <!--<option value="0">北京</option>-->
+                                    <!---->
+                                    </select>
+                                    <select v-model="dbName" name="dbName" lay-filter="dbNameFilter">
+                                        <option v-for="name in dbNameList" :value="name">{{name}}</option>
+                                    </select>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6"></div>
+                    </div>
+                </div>
+            </form>
+            <div class="layui-container" style="width: 100%" id="sql-console">
+                <div class="layui-row layui-col-space10">
+                    <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid;">
+                        <blockquote class="layui-elem-quote">
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成DAO</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成TEST</a>
+                        </blockquote>
+                        <div class="zTreeDemoBackground left">
+                            <ul id="treeDemo" class="ztree"></ul>
+                        </div>
+                    </div>
+                    <div class="layui-col-md9" style="min-height: 500px; border: #8D8D8D 1px solid;">
+                        <blockquote class="layui-elem-quote" style="margin-bottom: 0px">
+                            <a class="layui-btn layui-btn-xs layui-btn-danger" href="javascript:void(0)" onclick="exeSql()">
+                                执行
+                                <i class="layui-icon layui-icon-triangle-r"></i>
+                            </a>
+                        </blockquote>
+                        <!--<textarea name="code" id="code" placeholder="请输入内容" class="layui-textarea code" ></textarea>-->
+                        <textarea id="code" name="code">SELECT * FROM</textarea>
+
+                        <blockquote class="layui-elem-quote">
+                            {{message}}
+                        </blockquote>
+                    </div>
+                </div>
+
+
+            </div>
+
+
+        </div>
+        <div class="layui-tab-item">内容2</div>
+        <div class="layui-tab-item">内容3</div>
+        <div class="layui-tab-item">内容4</div>
+        <div class="layui-tab-item">内容5</div>
+    </div>
+</div>
+
+<script src="/layui/layui.js"></script>
+<script src="/js/jquery-3.3.1.min.js"></script>
+<!--<script src="/js/jquery-1.12.0.min.js"></script>-->
+<script src="/js/vue.min.js"></script>
+<script>
+    var setting = {
+        check: {
+            enable: true,
+            nocheckInherit: true
+        },
+        data: {
+            simpleData: {
+                enable: true
+            }
+        },
+        callback: {
+            onCheck: onCheck,
+            onClick: onclickTree,
+        },
+        async: {
+            enable: true,
+            url: "/getChildren.json",
+            autoParam: ["id", "name", "level"],
+            // otherParam:{"otherParam":"zTreeAsyncTest"},
+            dataFilter: filter
+        }
+
+
+    };
+    var treeNodes = [
+        {
+            name: "请选择数据库",
+            open: true,
+            nocheck: true,
+            children: []
+        }
+
+    ];
+
+    var tree;
+    setTimeout(function () {
+        $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+    }, 200);
+
+    function onclickTree(event, treeId, treeNode) {
+        console.log(event);
+        console.log(treeNode);
+        if (treeNode.type != "table") {
+            return;
+        }
+        if (treeNode.children.length > 0) {
+            return;
+        }
+        let tableName = treeNode.name;
+        let dbName = treeNode.getParentNode().name;
+        let map = {};
+        map = dbForm._data;
+        map.dbName = dbName;
+        map.tableName = tableName;
+        $.ajax({
+            type: "get",
+            url: "/getTableColumnList",
+            data: dbForm._data,
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                    return;
+                }
+                if (dataResult.data.length == 0) {
+                    layui.layer.msg("未查询到字段");
+                    return;
+                }
+                treeNode.children = [];
+                let data = dataResult.data;
+                for (let i = 0; i < data.length; i++) {
+                    treeNode.children.push({
+                        name: data[i].columnName + " " + "[" + data[i].columnType + "]",
+                        nocheck: true,
+                        type: "column",
+                        open: true
+                    });
+                }
+                let tableNodes = treeNodes[0].children;
+                for (let i = 0; i < tableNodes.length; i++) {
+                    if (tableNodes[i].name == tableName) {
+                        tableNodes[i].children = treeNode.children;
+                        break;
+                    }
+                }
+                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+            }
+        });
+    }
+
+    function filter(treeId, parentNode, childNodes) {
+        if (!childNodes) return null;
+        for (var i = 0, l = childNodes.length; i < l; i++) {
+            childNodes[i].name = childNodes[i].name.replace(/\.n/g, '.');
+        }
+        return childNodes;
+    }
+
+
+    var dbForm = new Vue({
+        el: '#db-form',
+        data: {
+            dbType: "MySQL",
+            host: "localhost",
+            port: "3306",
+            username: "root",
+            password: "123456",
+            dbName: "",
+            dbNameList: []
+        },
+        methods: {}
+    });
+
+    var dbConsole = new Vue({
+        el: '#sql-console',
+        data: {
+            sqlType: "DQL",
+            success: true,
+            message: "text"
+        },
+        methods: {}
+    });
+
+
+    var chooseDb = function (dbName) {
+        let currentDbNode = getDbTreeNode(treeNodes, dbName);
+        if (currentDbNode.open) {
+            currentDbNode.open = true;
+            tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+            return;
+        } else {
+            currentDbNode.open = true;
+        }
+        let map = {};
+        map = dbForm._data;
+        map.dbName = dbName;
+        $.ajax({
+            type: "get",
+            url: "/getTableNameList",
+            data: dbForm._data,
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                    return;
+                }
+                if (dataResult.data.length == 0) {
+                    layui.layer.msg("未查询到表！");
+                    return;
+                }
+                let tablesNodes = [];
+                let data = dataResult.data;
+                for (let i = 0; i < data.length; i++) {
+                    tablesNodes.push({
+                        name: data[i],
+                        // click: "chooseTable(this)",
+                        icon: "/css/zTreeStyle/img/table.png",
+                        open: true,
+                        type: "table",
+                        children: []
+                    });
+
+                }
+                currentDbNode.children = tablesNodes;
+                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+            }
+        });
+    };
+
+    function getTableNameList(dbName) {
+        $.ajax({
+            type: "get",
+            url: "/getTableNameList",
+            data: dbForm._data,
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                    return;
+                }
+                if (dataResult.data.length == 0) {
+                    layui.layer.msg("未查询到表！");
+                    return;
+                }
+                var rootNode = {};
+                rootNode.name = dbName;
+                rootNode.open = true;
+                rootNode.children = [];
+                rootNode.icon = "/css/zTreeStyle/img/database.png";
+                let data = dataResult.data;
+                for (let i = 0; i < data.length; i++) {
+                    rootNode.children.push({
+                        name: data[i],
+                        // click: "chooseTable(this)",
+                        icon: "/css/zTreeStyle/img/table.png",
+                        open: true,
+                        type: "table",
+                        children: []
+                    });
+
+                }
+                treeNodes = [];
+                treeNodes.push(rootNode);
+                // currentDbNode.children = tablesNodes;
+                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+            }
+        });
+    }
+
+    function onCheck(event, treeId, treeNode) {
+        let parentNode = treeNode.getParentNode();
+        let type = treeNode.type;
+        let dbName = "";
+        if (type != "db") {
+            return;
+        }
+        if (!treeNode.checked) {
+            return;
+        }
+        let treeNodes = tree.getNodes();
+        let checkCount = 0;
+        for (let i = 0; i < treeNodes.length; i++) {
+            if (treeNodes[i].checked) {
+                checkCount++;
+            }
+        }
+        console.log(checkCount);
+        //如果选中的表多于1，则反选其他已选中的db，保证每次只能选中一个DB
+        if (checkCount > 1) {
+            tree.checkAllNodes(false);
+            tree.checkNode(treeNode, true, true, true);
+        }
+    };
+
+    var chooseTable = function (tableNode) {
+        let dbName = $(tableNode).parent().parent().parent().find("a").attr("title");
+        let tableName = $(tableNode).text();
+        let dbTreeNode = getDbTreeNode(treeNodes, dbName);
+        let tableTreeNode = getTableTreeNode(dbTreeNode, tableName);
+        if (tableTreeNode.open) {
+            tableTreeNode.open = true;
+            tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+            return;
+        } else {
+            tableTreeNode.open = true;
+        }
+        let map = {};
+        map = dbForm._data;
+        map.dbName = dbName;
+        map.tableName = tableName;
+        // layui.layer.msg(dbName + tableName);
+        $.ajax({
+            type: "get",
+            url: "/getTableColumnList",
+            data: dbForm._data,
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                    return;
+                }
+                if (dataResult.data.length == 0) {
+                    layui.layer.msg("未查询到字段");
+                    return;
+                }
+                tableTreeNode.children = [];
+                let data = dataResult.data;
+                for (let i = 0; i < data.length; i++) {
+                    tableTreeNode.children.push({
+                        name: data[i].columnName + " " + "[" + data[i].columnType + "]",
+                        nocheck: true,
+                        type: "column",
+                        open: true
+                    });
+                }
+                tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+            }
+        });
+    };
+
+    var getDbTreeNode = function (treeNodes, dbName) {
+        for (let i = 0; i < treeNodes.length; i++) {
+            console.log(treeNodes[i]);
+            if (treeNodes[i].name == dbName) {
+                return treeNodes[i];
+            }
+        }
+        return {};
+    };
+
+    var getTableTreeNode = function (dbTreeNode, tableName) {
+        if (!dbTreeNode.children || dbTreeNode.children.length == 0) {
+            return {};
+        }
+        for (let i = 0; i < dbTreeNode.children.length; i++) {
+            console.log(dbTreeNode[i]);
+            if (dbTreeNode.children[i].name == tableName) {
+                return dbTreeNode.children[i];
+            }
+        }
+        return {};
+    };
+
+    var connect = function () {
+        console.log(dbForm._data);
+        $.ajax({
+            type: "get",
+            url: "/getDbNameList",
+            data: dbForm._data,
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                    return;
+                }
+                if (dataResult.length == 0) {
+                    layui.layer.msg("未查询到数据库");
+                    return;
+                }
+                treeNodes = [];
+                let data = dataResult.data;
+                dbForm._data.dbNameList = data;
+                setTimeout(function () {
+                    layui.form.render('select');
+                }, 200);
+                return;
+                for (let i = 0; i < data.length; i++) {
+                    treeNodes.push({
+                        name: data[i],
+                        // click: "chooseDb('" + data[i] + "')",
+                        icon: "/css/zTreeStyle/img/database.png",
+                        open: true,
+                        type: "db",
+                        children: []
+                    });
+                    tree = $.fn.zTree.init($("#treeDemo"), setting, treeNodes);
+                }
+            }
+        });
+    };
+
+    function getSelectText() {
+        var t = document.getElementById("code");
+        if (window.getSelection) {
+            if (t.selectionStart != undefined && t.selectionEnd != undefined) {
+                return t.value.substring(t.selectionStart, t.selectionEnd);
+            } else {
+                return "";
+            }
+        } else {
+            return document.selection.createRange().text;
+        }
+    }
+
+    function exeSql() {
+        // let sql = getSelectText();
+        let sql = editor.getSelection();
+        if (!sql || sql.length == 0) {
+            layui.layer.msg("请选中要执行的SQL");
+            return;
+        }
+        dbForm._data.dbName = "SofaTest";
+        dbForm._data.sql = sql;
+        $.ajax({
+            type: "get",
+            url: "/exeSql",
+            data: dbForm._data,
+            success: function (dataResult) {
+                if (!dataResult.success) {
+                    layui.layer.alert(dataResult.message);
+                }
+                let sqlType = dataResult.data.sqlType;
+                if (sqlType == "DML") {
+                    layui.layer.msg(dataResult.data.message);
+                    dbConsole._data.message = dataResult.data.message;
+                    return;
+                }
+                console.log(dataResult);
+            }
+        });
+
+    }
+
+
+    layui.use(['element', 'form', 'layer'], function () {
+        var element = layui.element;
+        var form = layui.form;
+
+        form.on('select(dbNameFilter)', function (data) {
+            console.log(data.elem); //得到select原始DOM对象
+            console.log(data.value); //得到被选中的值
+            console.log(data.othis); //得到美化后的DOM对象
+            dbForm._data.dbName = data.value;
+            getTableNameList(data.value);
+        });
+
+    });
+
+
+</script>
+<!--<link rel="stylesheet"-->
+<!--href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/default.min.css">-->
+<!--<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>-->
+<!--Request URL:https://s1.tool.lu/js/comment/main.bundle.css?t=1510998813261-->
+<!-- 引入CodeMirror核心文件 -->
+
+
+<script src="/js/jquery.ztree.all.min.js"></script>
+
+
+<link rel="stylesheet" href="/codemirror/lib/codemirror.css"/>
+<script src="/codemirror/lib/codemirror.js"></script>
+<script src="/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="codemirror/mode/sql/sql.js"></script>
+<link rel="stylesheet" href="/codemirror/addon/hint/show-hint.css"/>
+<script src="/codemirror/addon/hint/show-hint.js"></script>
+<script src="/codemirror/addon/hint/sql-hint.js"></script>
+
+<script>
+    function completeIfInTag(cm) {
+        return completeAfter(cm, function () {
+            var tok = cm.getTokenAt(cm.getCursor());
+            if (tok.type == "string" && (!/['"]/.test(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
+            var inner = CodeMirror.innerMode(cm.getMode(), tok.state).state;
+            return inner.tagName;
+        });
+    }
+
+    function completeAfter(cm, pred) {
+        var cur = cm.getCursor();
+        if (!pred || pred()) setTimeout(function () {
+            if (!cm.state.completionActive)
+                cm.showHint({
+                    completeSingle: false
+                });
+        }, 100);
+        return CodeMirror.Pass;
+    }
+
+    window.onload = function () {
+        window.editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+            // mode: mime,
+            indentWithTabs: true,
+            smartIndent: true,
+            lineNumbers: true,
+            matchBrackets: true,
+            autofocus: true,
+            // extraKeys: {"Ctrl-Space": "autocomplete"},
+            extraKeys: {
+                "Ctrl": "autocomplete"
+            },
+            mode: {name: "text/x-mysql"},
+            // theme: "ambiance",
+            hintOptions: {
+                // http://www.mamicode.com/info-detail-2243638.html
+                // tables: result.data,
+                tables: {
+                    "table1": [
+                        "col1", "col2"
+                    ],
+                    "table2": ["col1", "col2"]
+                },
+                Tab: function (cm) {
+                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces);
+                }
+            }
+        });
+        window.editor.on("keyup", function (cm, event) {
+            if (!cm.state.completionActive &&
+                ((event.keyCode >= 65 && event.keyCode <= 90) || event.keyCode == 52 || event.keyCode == 219 || event.keyCode == 190 || event.keyCode == 32)) {
+                CodeMirror.commands.autocomplete(cm, null, {completeSingle: false});
+            }
+        });
+    }
+</script>
+</body>
+</html>

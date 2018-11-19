@@ -19,7 +19,7 @@ public class DaoGeneratorController {
 
     @RequestMapping("/")
     public String index() {
-        return "index";
+        return "index1";
     }
 
     @ResponseBody
