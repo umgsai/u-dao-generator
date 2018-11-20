@@ -12,7 +12,7 @@
     <title>DaoGenerator</title>
     <link rel="stylesheet" href="/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/css/zTreeStyle/zTreeStyle.css" media="all">
-    <link rel="stylesheet" href="/css/main.css">
+    <!--<link rel="stylesheet" href="/css/main.css">-->
 
     <link href="/codemirror/lib/codemirror.css" rel="stylesheet" type="text/css">
     <link href="/codemirror/theme/monokai.css" rel="stylesheet" type="text/css">
@@ -20,12 +20,9 @@
 </head>
 <body>
 <div class="layui-tab">
-    <ul class="layui-tab-title">
+    <ul class="layui-tab-title" style="margin: 0 20px">
         <li class="layui-this">DB工具</li>
-        <li>用户管理</li>
-        <li>权限分配</li>
-        <li>商品管理</li>
-        <li>订单管理</li>
+        <li>格式化工具</li>
     </ul>
     <div class="layui-tab-content">
         <div class="layui-tab-item layui-show">
@@ -36,7 +33,7 @@
 
                             <div class="layui-form-item">
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">DB类型</label>
+                                    <label class="layui-form-label" style="padding-left: 0px; padding-right: 10px">DB类型</label>
                                     <div class="layui-input-inline">
                                         <select v-model="dbType">
                                             <option value="MySQL">MySQL</option>
@@ -44,7 +41,7 @@
                                     </div>
                                 </div>
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">Host</label>
+                                    <label class="layui-form-label" style="padding-left: 0px; padding-right: 10px">Host</label>
                                     <div class="layui-input-inline">
                                         <!--<select name="modules" lay-verify="required" lay-search="">-->
                                         <!--<option value="">直接选择或搜索选择</option>-->
@@ -56,7 +53,7 @@
                                     </div>
                                 </div>
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">port</label>
+                                    <label class="layui-form-label" style="padding-left: 0px; padding-right: 10px">port</label>
                                     <div class="layui-input-inline">
                                         <div class="layui-input-inline">
                                             <input type="number" v-model="port" required lay-verify="required" placeholder="3306"
@@ -65,7 +62,7 @@
                                     </div>
                                 </div>
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">用户名</label>
+                                    <label class="layui-form-label" style="padding-left: 0px; padding-right: 10px">用户名</label>
                                     <div class="layui-input-inline">
                                         <div class="layui-input-inline">
                                             <input type="text" v-model="username" required lay-verify="required" placeholder="root"
@@ -74,16 +71,16 @@
                                     </div>
                                 </div>
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">密码</label>
+                                    <label class="layui-form-label" style="padding-left: 0px; padding-right: 10px">密码</label>
                                     <div class="layui-input-inline">
                                         <div class="layui-input-inline">
-                                            <input type="text" v-model="password" required lay-verify="required" placeholder=""
+                                            <input type="password" v-model="password" required lay-verify="required" placeholder=""
                                                    autocomplete="off" class="layui-input">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="layui-inline">
-                                    <button class="layui-btn" onClick="connect()">连接服务器</button>
+                                    <button class="layui-btn" onClick="connect()" style="padding: 0 10px;">连接服务器</button>
                                 </div>
                             </div>
                         </div>
@@ -91,18 +88,12 @@
                     <div class="layui-row">
                         <div class="layui-col-md6">
                             <div class="layui-form-item">
-                                <label class="layui-form-label" style="width: 100px">选择数据库</label>
+                                <label class="layui-form-label">选择数据库</label>
                                 <div class="layui-input-block">
-                                    <!--<select name="dbList" lay-verify="required">-->
-                                    <!--<option value=""></option>-->
-                                    <!--<option value="0">北京</option>-->
-                                    <!---->
-                                    </select>
                                     <select v-model="dbName" name="dbName" lay-filter="dbNameFilter">
                                         <option value='' disabled selected style='display:none;'>选择数据库</option>
                                         <option v-for="name in dbNameList" :value="name">{{name}}</option>
                                     </select>
-
                                 </div>
                             </div>
                         </div>
@@ -112,7 +103,8 @@
             </form>
             <div class="layui-container" style="width: 100%" id="sql-console">
                 <div class="layui-row layui-col-space10">
-                    <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid; overflow-x: auto; overflow-y: auto; max-height: 1000px">
+                    <div class="layui-col-md3"
+                         style="min-height: 937px; border: #8D8D8D 1px solid; overflow-x: auto; overflow-y: auto; max-height: 1000px">
                         <blockquote class="layui-elem-quote">
                             <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
                             <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
@@ -123,7 +115,7 @@
                             <ul id="treeDemo" class="ztree"></ul>
                         </div>
                     </div>
-                    <div class="layui-col-md9" style="min-height: 500px; border: #8D8D8D 1px solid;">
+                    <div class="layui-col-md9" style="height: 937px; border: #8D8D8D 1px solid;">
                         <blockquote class="layui-elem-quote" style="margin-bottom: 0px">
                             <a class="layui-btn layui-btn-xs layui-btn-danger" href="javascript:void(0)" onclick="exeSql()">
                                 执行
@@ -136,6 +128,8 @@
                         <blockquote class="layui-elem-quote">
                             {{message}}
                         </blockquote>
+                        <table class="layui-hide" id="demo"></table>
+
                     </div>
                 </div>
 
@@ -145,9 +139,6 @@
 
         </div>
         <div class="layui-tab-item">内容2</div>
-        <div class="layui-tab-item">内容3</div>
-        <div class="layui-tab-item">内容4</div>
-        <div class="layui-tab-item">内容5</div>
     </div>
 </div>
 
@@ -306,7 +297,7 @@
                 }
                 this.dbName = newValue[0];
             },
-            dbName(newValue, oldValue){
+            dbName(newValue, oldValue) {
                 if (!newValue || newValue == "") {
                     return;
                 }
@@ -451,6 +442,44 @@
                     dbConsole._data.message = dataResult.data.message;
                     return;
                 }
+                if (sqlType == "DQL") {
+                    let columnNameList = dataResult.data.columnNameList;
+                    let dataList = dataResult.data.data;
+                    console.log(columnNameList);
+                    console.log(dataList);
+                    let cols = [];
+                    for (let i = 0; i < columnNameList.length; i++) {
+                        let colMember = {
+                            field: columnNameList[i],
+                            title: columnNameList[i]
+                        };
+                        cols.push(colMember);
+                    }
+                    let tableDataList = [];
+                    for (let i = 0; i < dataList.length; i++) {
+                        let dataMember = {};
+                        for (let j = 0; j < columnNameList.length; j++) {
+                            dataMember[columnNameList[j]] = dataList[i][j];
+                        }
+                        tableDataList.push(dataMember);
+                    }
+                    let tableSettings = {
+                        elem: '#demo'
+                        , toolbar: true
+                        , height: 500
+                        , cols: []
+                        , data: []
+                        //,skin: 'line' //表格风格
+                        , even: true
+                        , page: true //是否显示分页
+                        //,limits: [5, 7, 10]
+                        , limit: 20 //每页默认显示的数量
+                    };
+                    tableSettings.cols.push(cols);
+                    tableSettings.data = tableDataList;
+                    layui.table.render(tableSettings);
+                    return;
+                }
                 console.log(dataResult);
             }
         });
@@ -458,7 +487,7 @@
     }
 
 
-    layui.use(['element', 'form', 'layer'], function () {
+    layui.use(['element', 'form', 'layer', 'table'], function () {
         var element = layui.element;
         var form = layui.form;
 

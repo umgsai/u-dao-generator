@@ -155,6 +155,7 @@ public class MySQLManager {
             }
             map = (Map<String, Object>) dataResult.getData();
             Map<String, Object> resultMap = Maps.newHashMap();
+            resultMap.put("sqlType", sqlType);
             switch (sqlType) {
                 case DQL:
                     ResultSet resultSet = (ResultSet) map.get("resultSet");
@@ -171,6 +172,11 @@ public class MySQLManager {
                     resultSet.last();
                     int rowCount = resultSet.getRow();
                     Object data[][] = new Object[rowCount][columnCount];
+                    resultMap.put("columnNameList", columnNameList);
+                    resultMap.put("data", data);
+                    if (rowCount == 0) {
+                        return DataResult.successResult(resultMap);
+                    }
                     int row = 0;
                     int column = 0;
                     resultSet.first();
@@ -184,17 +190,16 @@ public class MySQLManager {
                             }
                         }
                         row++;
-                    }while (resultSet.next());
+                    } while (resultSet.next());
                     //if (log.isInfoEnabled()) {
                     //    log.info(String.format(JSON.toJSONString(data)));
                     //}
                     //Map<String, Object> resultMap = Maps.newHashMap();
-                    resultMap.put("columnNameList", columnNameList);
-                    resultMap.put("data", data);
+
                     return DataResult.successResult(resultMap);
                 case DML:
                     int count = (int) map.get("count");
-                    resultMap.put("sqlType", sqlType);
+                    //resultMap.put("sqlType", sqlType);
                     resultMap.put("count", count);
                     resultMap.put("message", String.format("执行成功，影响行数：%d", count));
                     return DataResult.successResult(resultMap);
