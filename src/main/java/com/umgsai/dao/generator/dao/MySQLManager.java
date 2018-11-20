@@ -4,6 +4,8 @@
  */
 package com.umgsai.dao.generator.dao;
 
+import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.PreparedStatement;
@@ -19,7 +21,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -142,6 +146,7 @@ public class MySQLManager {
     public static DataResult executeSql(String host, String port, String username, String password, String dbName,
                                         String sql) {
         Map<String, Object> map = Maps.newHashMap();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             SqlType sqlType = SqlUtil.getSqlType(sql);
             DataResult dataResult = execute(host, port, username, password, dbName, sql);
@@ -149,12 +154,46 @@ public class MySQLManager {
                 return dataResult;
             }
             map = (Map<String, Object>) dataResult.getData();
+            Map<String, Object> resultMap = Maps.newHashMap();
             switch (sqlType) {
                 case DQL:
-                    break;
+                    ResultSet resultSet = (ResultSet) map.get("resultSet");
+                    //获取列名
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+
+                    List<String> columnNameList = Lists.newArrayList();
+                    //int columnCount = 0;
+                    for (int i = 0; i < columnCount; i++) {
+                        columnNameList.add(metaData.getColumnName(i + 1));
+                        //columnCount++;
+                    }
+                    resultSet.last();
+                    int rowCount = resultSet.getRow();
+                    Object data[][] = new Object[rowCount][columnCount];
+                    int row = 0;
+                    int column = 0;
+                    resultSet.first();
+                    do {
+                        for (int i = 0; i < columnCount; i++) {
+                            Object o = resultSet.getObject(i + 1);
+                            if (o instanceof Date) {
+                                data[row][i] = simpleDateFormat.format(o);
+                            } else {
+                                data[row][i] = o;
+                            }
+                        }
+                        row++;
+                    }while (resultSet.next());
+                    //if (log.isInfoEnabled()) {
+                    //    log.info(String.format(JSON.toJSONString(data)));
+                    //}
+                    //Map<String, Object> resultMap = Maps.newHashMap();
+                    resultMap.put("columnNameList", columnNameList);
+                    resultMap.put("data", data);
+                    return DataResult.successResult(resultMap);
                 case DML:
                     int count = (int) map.get("count");
-                    Map<String, Object> resultMap = Maps.newHashMap();
                     resultMap.put("sqlType", sqlType);
                     resultMap.put("count", count);
                     resultMap.put("message", String.format("执行成功，影响行数：%d", count));
@@ -218,6 +257,7 @@ public class MySQLManager {
         Connection connection = (Connection) dataResult.getData();
         map.put("connection", connection);
         PreparedStatement preparedStatement;
+        //ResultSet resultSet;
 
         SqlType sqlType = SqlUtil.getSqlType(sql);
         try {

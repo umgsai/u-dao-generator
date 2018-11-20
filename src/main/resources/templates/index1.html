@@ -112,7 +112,7 @@
             </form>
             <div class="layui-container" style="width: 100%" id="sql-console">
                 <div class="layui-row layui-col-space10">
-                    <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid;overflow: hidden; overflow-x: auto;">
+                    <div class="layui-col-md3" style="min-height: 500px; border: #8D8D8D 1px solid; overflow-x: auto; overflow-y: auto; max-height: 1000px">
                         <blockquote class="layui-elem-quote">
                             <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
                             <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
@@ -305,6 +305,12 @@
                     return;
                 }
                 this.dbName = newValue[0];
+            },
+            dbName(newValue, oldValue){
+                if (!newValue || newValue == "") {
+                    return;
+                }
+                getTableNameList(newValue);
             }
         },
         methods: {}
@@ -464,7 +470,7 @@
                 return;
             }
             dbForm._data.dbName = data.value;
-            getTableNameList(data.value);
+
         });
 
     });
