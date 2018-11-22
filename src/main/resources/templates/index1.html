@@ -128,7 +128,7 @@
                         <blockquote class="layui-elem-quote">
                             {{message}}
                         </blockquote>
-                        <table class="layui-hide" id="demo"></table>
+                        <table class="layui-hide layui-table" id="db-result" lay-filter="db-result"></table>
 
                     </div>
                 </div>
@@ -453,6 +453,9 @@
                             field: columnNameList[i],
                             title: columnNameList[i]
                         };
+                        if (colMember.field != "id") {
+                            colMember.edit = 'text';
+                        }
                         cols.push(colMember);
                     }
                     let tableDataList = [];
@@ -464,7 +467,7 @@
                         tableDataList.push(dataMember);
                     }
                     let tableSettings = {
-                        elem: '#demo'
+                        elem: '#db-result'
                         , toolbar: true
                         , height: 500
                         , cols: []
@@ -490,6 +493,7 @@
     layui.use(['element', 'form', 'layer', 'table'], function () {
         var element = layui.element;
         var form = layui.form;
+        var table = layui.table;
 
         form.on('select(dbNameFilter)', function (data) {
             console.log(data.elem); //得到select原始DOM对象
@@ -502,8 +506,14 @@
 
         });
 
-    });
+        table.on('edit(db-result)', function(obj){
+            var value = obj.value //得到修改后的值
+                ,data = obj.data //得到所在行所有键值
+                ,field = obj.field; //得到字段
+            layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+        });
 
+    });
 
 </script>
 <!--<link rel="stylesheet"-->
