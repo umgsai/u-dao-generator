@@ -422,9 +422,18 @@
     function exeSql() {
         // let sql = getSelectText();
         let sql = editor.getSelection();
-        if (!sql || sql.length == 0) {
-            layui.layer.msg("请选中要执行的SQL");
-            return;
+        if (!sql) {
+            let cursor = editor.getCursor()
+            if (!cursor) {
+                layui.layer.msg("请选中要执行的SQL");
+                return;
+            }
+            let line = cursor.line;
+            sql = editor.getLine(line);
+            if (!sql) {
+                layui.layer.msg("请选中要执行的SQL");
+                return;
+            }
         }
         // dbForm._data.dbName = "SofaTest";
         dbForm._data.sql = sql;
@@ -506,11 +515,11 @@
 
         });
 
-        table.on('edit(db-result)', function(obj){
+        table.on('edit(db-result)', function (obj) {
             var value = obj.value //得到修改后的值
-                ,data = obj.data //得到所在行所有键值
-                ,field = obj.field; //得到字段
-            layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+                , data = obj.data //得到所在行所有键值
+                , field = obj.field; //得到字段
+            layer.msg('[ID: ' + data.id + '] ' + field + ' 字段更改为：' + value);
         });
 
     });
