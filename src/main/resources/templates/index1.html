@@ -13,6 +13,11 @@
     <link rel="stylesheet" href="/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/css/zTreeStyle/zTreeStyle.css" media="all">
     <!--<link rel="stylesheet" href="/css/main.css">-->
+    <style>
+        .layui-table-view {
+            margin: 0px
+        }
+    </style>
 
     <link href="/codemirror/lib/codemirror.css" rel="stylesheet" type="text/css">
     <link href="/codemirror/theme/monokai.css" rel="stylesheet" type="text/css">
@@ -103,7 +108,7 @@
             </form>
             <div class="layui-container" style="width: 100%" id="sql-console">
                 <div class="layui-row layui-col-space10">
-                    <div class="layui-col-md3"
+                    <div class="layui-col-md2"
                          style="min-height: 937px; border: #8D8D8D 1px solid; overflow-x: auto; overflow-y: auto; max-height: 1000px">
                         <blockquote class="layui-elem-quote">
                             <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
@@ -115,7 +120,7 @@
                             <ul id="treeDemo" class="ztree"></ul>
                         </div>
                     </div>
-                    <div class="layui-col-md9" style="height: 937px; border: #8D8D8D 1px solid;">
+                    <div class="layui-col-md10" style="height: 937px; overflow-y: scroll; border: #8D8D8D 1px solid;">
                         <blockquote class="layui-elem-quote" style="margin-bottom: 0px">
                             <a class="layui-btn layui-btn-xs layui-btn-danger" href="javascript:void(0)" onclick="exeSql()">
                                 执行
@@ -128,8 +133,20 @@
                         <blockquote class="layui-elem-quote">
                             {{message}}
                         </blockquote>
-                        <table class="layui-hide layui-table" id="db-result" lay-filter="db-result"></table>
-
+                        <!--<div style="width: 100%; overflow-x: scroll">-->
+                        <!--</div>-->
+                        <div class="layui-tab layui-tab-card">
+                            <ul class="layui-tab-title">
+                                <li class="layui-this">执行结果</li>
+                                <li>执行历史</li>
+                            </ul>
+                            <div class="layui-tab-content" style="padding: 0px">
+                                <div class="layui-tab-item layui-show" style="overflow-y: scroll; overflow-x: auto">
+                                    <table class="layui-hide layui-table" id="db-result" lay-filter="db-result"></table>
+                                </div>
+                                <div class="layui-tab-item">2</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -475,10 +492,18 @@
                         }
                         tableDataList.push(dataMember);
                     }
+                    let columnCount = columnNameList.length;
+                    let width = columnCount * 110;
+                    if (width < document.body.clientWidth * 0.8 + 20) {
+                        width = document.body.clientWidth * 0.8 + 20;
+                    }
                     let tableSettings = {
                         elem: '#db-result'
-                        , toolbar: true
+                        // , toolbar: true
+                        , style: "margin: 0px"
                         , height: 500
+                        , width: width
+                        , cellMinWidth: 80
                         , cols: []
                         , data: []
                         //,skin: 'line' //表格风格
@@ -593,6 +618,11 @@
                 }
             }
         });
+        editor.on("cursorActivity", function () {
+            //调用显示提示
+            editor.showHint();
+        });
+
         window.editor.on("keyup", function (cm, event) {
             if (!cm.state.completionActive &&
                 ((event.keyCode >= 65 && event.keyCode <= 90) || event.keyCode == 52 || event.keyCode == 219 || event.keyCode == 190 || event.keyCode == 32)) {

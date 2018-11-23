@@ -264,13 +264,13 @@ public class MySQLManager {
         PreparedStatement preparedStatement;
         //ResultSet resultSet;
 
-        SqlType sqlType = SqlUtil.getSqlType(sql);
         try {
             if (log.isInfoEnabled()) {
                 log.info(String.format("执行SQL:%s", sql));
             }
             preparedStatement = (PreparedStatement) connection.prepareStatement(sql);
             String sqlWithLowerCase = StringUtils.lowerCase(sql);
+            SqlType sqlType = SqlUtil.getSqlType(sqlWithLowerCase);
             map.put("preparedStatement", preparedStatement);
             SqlExecutor sqlExecutor = null;
             switch (sqlType) {
