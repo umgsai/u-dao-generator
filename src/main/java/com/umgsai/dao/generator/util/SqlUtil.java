@@ -26,6 +26,9 @@ public class SqlUtil {
         if (StringUtils.startsWith(sqlWithLowerCase, "show ")) {
             return SqlType.DQL;
         }
+        if (StringUtils.startsWith(sqlWithLowerCase, "explain ")) {
+            return SqlType.DQL;
+        }
         if (StringUtils.startsWith(sqlWithLowerCase, "update ")) {
             return SqlType.DML;
         }

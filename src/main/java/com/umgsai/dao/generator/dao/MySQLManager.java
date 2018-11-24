@@ -36,7 +36,6 @@ import java.util.Map;
 @Slf4j
 public class MySQLManager {
 
-    //sql注入待解决
     public static DataResult<List<TableColumn>> getTableColumnList(String host, String port, String username, String password,
                                                                    String dbName, String tableName) {
         Map<String, Object> map = Maps.newHashMap();
@@ -58,7 +57,7 @@ public class MySQLManager {
                 String columnType = resultSet.getString("COLUMN_TYPE");
                 TableColumn tableColumn = new TableColumn(columnName, columnType, columnDataType, columnComment);
                 tableColumnList.add(tableColumn);
-                ConvertUtil.convertToJavaClass(tableColumn);
+//                ConvertUtil.convertToJavaClass(tableColumn);
             }
             return DataResult.successResult(tableColumnList, dataResult.getMessage());
         } catch (SQLException e) {
@@ -268,9 +267,6 @@ public class MySQLManager {
         //ResultSet resultSet;
 
         try {
-            if (log.isInfoEnabled()) {
-                log.info(String.format("执行SQL:%s", sql));
-            }
             preparedStatement = (PreparedStatement) connection.prepareStatement(sql);
             String sqlWithLowerCase = StringUtils.lowerCase(sql);
             SqlType sqlType = SqlUtil.getSqlType(sqlWithLowerCase);
@@ -286,8 +282,7 @@ public class MySQLManager {
                         return dqlResult;
                     }
                     map.put("resultSet", dqlResult.getData());
-                    message = String.format("耗时：%sms", System.currentTimeMillis() - start);
-                    return DataResult.successResult(map, message);
+                    break;
                 case DML:
                     sqlExecutor = new DmlSqlExecutor();
                     DataResult dmlResult = sqlExecutor.execute(preparedStatement);
@@ -295,8 +290,7 @@ public class MySQLManager {
                         return dmlResult;
                     }
                     map.put("count", dmlResult.getData());
-                    message = String.format("耗时：%sms", System.currentTimeMillis() - start);
-                    return DataResult.successResult(map, message);
+                    break;
                 case DCL:
 
                     break;
@@ -307,16 +301,11 @@ public class MySQLManager {
                 default:
                     return DataResult.failResult(ErrorCode.UNKNOWN_SQL_TYPE.name(), "不支持的SQL类型");
             }
-
-            if (StringUtils.startsWith(sqlWithLowerCase, "insert ") || StringUtils.startsWith(sqlWithLowerCase, "update ") || StringUtils
-                    .startsWith(sqlWithLowerCase, "delete ")) {
-                int count = preparedStatement.executeUpdate();
-                map.put("count", count);
-                return DataResult.successResult(map);
+            message = String.format("执行成功，耗时：%sms", System.currentTimeMillis() - start);
+            if (log.isInfoEnabled()) {
+                log.info(String.format("执行SQL:%s  %s", sql, message));
             }
-            boolean success = preparedStatement.execute();
-            map.put("success", success);
-            return DataResult.successResult(map);
+            return DataResult.successResult(map, message);
         } catch (SQLException e) {
             String errorMsg = String.format("执行SQL异常：%s。%s", sql, e.getMessage());
             log.error(errorMsg, e);

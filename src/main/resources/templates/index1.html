@@ -110,18 +110,18 @@
                 <div class="layui-row layui-col-space10">
                     <div class="layui-col-md2"
                          style="min-height: 937px; border: #8D8D8D 1px solid; overflow-x: auto; overflow-y: auto; max-height: 1000px">
-                        <blockquote class="layui-elem-quote">
-                            <a class="layui-btn layui-btn-xs layui-btn-danger">全部生成</a>
-                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成DO</a>
-                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成DAO</a>
-                            <a class="layui-btn layui-btn-xs layui-btn-danger">生成TEST</a>
+                        <blockquote class="layui-elem-quote" style="padding: 5px; border-left: 0px">
+                            <a class="layui-btn layui-btn-xs layui-btn-danger" style="margin-left: 0px">全部生成</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger" style="margin-left: 0px">生成DO</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger" style="margin-left: 0px">生成DAO</a>
+                            <a class="layui-btn layui-btn-xs layui-btn-danger" style="margin-left: 0px">生成TEST</a>
                         </blockquote>
                         <div class="zTreeDemoBackground left">
                             <ul id="treeDemo" class="ztree"></ul>
                         </div>
                     </div>
                     <div class="layui-col-md10" style="height: 937px; overflow-y: scroll; border: #8D8D8D 1px solid;">
-                        <blockquote class="layui-elem-quote" style="margin-bottom: 0px">
+                        <blockquote class="layui-elem-quote" style="margin-bottom: 0px; padding: 5px; border-left: 0px">
                             <a class="layui-btn layui-btn-xs layui-btn-danger" href="javascript:void(0)" onclick="exeSql()">
                                 执行
                                 <i class="layui-icon layui-icon-triangle-r"></i>
@@ -130,7 +130,7 @@
                         <!--<textarea name="code" id="code" placeholder="请输入内容" class="layui-textarea code" ></textarea>-->
                         <textarea id="code" name="code">SELECT * FROM</textarea>
 
-                        <blockquote class="layui-elem-quote" style="line-height: 10px" :style="{color: success? 'green': 'red' }">
+                        <blockquote class="layui-elem-quote" style="padding: 5px; border-left: 0px" :style="{color: success? 'green': 'red' }">
                             {{message}}
                         </blockquote>
                         <!--<div style="width: 100%; overflow-x: scroll">-->
@@ -255,6 +255,8 @@
             url: "/getTableColumnList",
             data: dbForm._data,
             success: function (dataResult) {
+                dbConsole._data.message = dataResult.message;
+                dbConsole._data.success = dataResult.success;
                 if (!dataResult.success) {
                     layui.layer.alert(dataResult.message);
                     return;
@@ -329,7 +331,7 @@
         data: {
             sqlType: "DQL",
             success: true,
-            message: ""
+            message: "请连接服务器后使用"
         },
         methods: {}
     });
@@ -340,6 +342,8 @@
             url: "/getTableNameList",
             data: dbForm._data,
             success: function (dataResult) {
+                dbConsole._data.message = dataResult.message;
+                dbConsole._data.success = dataResult.success;
                 if (!dataResult.success) {
                     layui.layer.alert(dataResult.message);
                     return;
@@ -404,6 +408,8 @@
             url: "/getDbNameList",
             data: dbForm._data,
             success: function (dataResult) {
+                dbConsole._data.message = dataResult.message;
+                dbConsole._data.success = dataResult.success;
                 if (!dataResult.success) {
                     layui.layer.alert(dataResult.message);
                     return;
