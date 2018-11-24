@@ -28,6 +28,14 @@ public class DataResult<T> implements Serializable {
         return dataResult;
     }
 
+    public static <T> DataResult successResult(T data, String message) {
+        DataResult dataResult = new DataResult();
+        dataResult.setSuccess(true);
+        dataResult.setData(data);
+        dataResult.setMessage(message);
+        return dataResult;
+    }
+
     public static DataResult successResult() {
         DataResult dataResult = new DataResult();
         dataResult.setSuccess(true);

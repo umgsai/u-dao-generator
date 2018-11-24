@@ -13,6 +13,7 @@ import com.umgsai.dao.generator.data.DataResult;
 import com.umgsai.dao.generator.data.ErrorCode;
 import com.umgsai.dao.generator.data.SqlType;
 import com.umgsai.dao.generator.data.TableColumn;
+import com.umgsai.dao.generator.util.ConvertUtil;
 import com.umgsai.dao.generator.util.SqlUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -55,9 +56,11 @@ public class MySQLManager {
                 String columnDataType = resultSet.getString("DATA_TYPE");
                 String columnComment = resultSet.getString("COLUMN_COMMENT");
                 String columnType = resultSet.getString("COLUMN_TYPE");
-                tableColumnList.add(new TableColumn(columnName, columnType, columnDataType, columnComment));
+                TableColumn tableColumn = new TableColumn(columnName, columnType, columnDataType, columnComment);
+                tableColumnList.add(tableColumn);
+                ConvertUtil.convertToJavaClass(tableColumn);
             }
-            return DataResult.successResult(tableColumnList);
+            return DataResult.successResult(tableColumnList, dataResult.getMessage());
         } catch (SQLException e) {
             String errorMsg = String.format("查询表结构异常！dbName=%s，tableName=%s，%s", dbName, tableName, e.getMessage());
             log.error(errorMsg, e);
@@ -84,7 +87,7 @@ public class MySQLManager {
                 String tableName = resultSet.getString(columnName);
                 tableNameList.add(tableName);
             }
-            return DataResult.successResult(tableNameList);
+            return DataResult.successResult(tableNameList, dataResult.getMessage());
         } catch (SQLException e) {
             String errorMsg = String.format("查询表名异常！%s", e.getMessage());
             log.error(errorMsg, e);
@@ -109,7 +112,7 @@ public class MySQLManager {
                 String tableName = resultSet.getString("Database");
                 dbNameList.add(tableName);
             }
-            return DataResult.successResult(dbNameList);
+            return DataResult.successResult(dbNameList, dataResult.getMessage());
         } catch (SQLException e) {
             String errorMsg = String.format("查询数据库列表异常！%s", e.getMessage());
             log.error(errorMsg, e);
@@ -196,13 +199,13 @@ public class MySQLManager {
                     //}
                     //Map<String, Object> resultMap = Maps.newHashMap();
 
-                    return DataResult.successResult(resultMap);
+                    return DataResult.successResult(resultMap, dataResult.getMessage());
                 case DML:
                     int count = (int) map.get("count");
                     //resultMap.put("sqlType", sqlType);
                     resultMap.put("count", count);
                     resultMap.put("message", String.format("执行成功，影响行数：%d", count));
-                    return DataResult.successResult(resultMap);
+                    return DataResult.successResult(resultMap, dataResult.getMessage());
                 case DCL:
 
                     break;
@@ -273,6 +276,8 @@ public class MySQLManager {
             SqlType sqlType = SqlUtil.getSqlType(sqlWithLowerCase);
             map.put("preparedStatement", preparedStatement);
             SqlExecutor sqlExecutor = null;
+            long start = System.currentTimeMillis();
+            String message = "";
             switch (sqlType) {
                 case DQL:
                     sqlExecutor = new DqlSqlExecutor();
@@ -281,7 +286,8 @@ public class MySQLManager {
                         return dqlResult;
                     }
                     map.put("resultSet", dqlResult.getData());
-                    return DataResult.successResult(map);
+                    message = String.format("耗时：%sms", System.currentTimeMillis() - start);
+                    return DataResult.successResult(map, message);
                 case DML:
                     sqlExecutor = new DmlSqlExecutor();
                     DataResult dmlResult = sqlExecutor.execute(preparedStatement);
@@ -289,7 +295,8 @@ public class MySQLManager {
                         return dmlResult;
                     }
                     map.put("count", dmlResult.getData());
-                    return DataResult.successResult(map);
+                    message = String.format("耗时：%sms", System.currentTimeMillis() - start);
+                    return DataResult.successResult(map, message);
                 case DCL:
 
                     break;

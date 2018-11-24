@@ -130,7 +130,7 @@
                         <!--<textarea name="code" id="code" placeholder="请输入内容" class="layui-textarea code" ></textarea>-->
                         <textarea id="code" name="code">SELECT * FROM</textarea>
 
-                        <blockquote class="layui-elem-quote">
+                        <blockquote class="layui-elem-quote" style="line-height: 10px">
                             {{message}}
                         </blockquote>
                         <!--<div style="width: 100%; overflow-x: scroll">-->
@@ -140,7 +140,7 @@
                                 <li class="layui-this">执行结果</li>
                                 <li>执行历史</li>
                             </ul>
-                            <div class="layui-tab-content" style="padding: 0px">
+                            <div class="layui-tab-content" style="padding: 0px; min-height: 460px;">
                                 <div class="layui-tab-item layui-show" style="overflow-y: scroll; overflow-x: auto">
                                     <table class="layui-hide layui-table" id="db-result" lay-filter="db-result"></table>
                                 </div>
@@ -459,6 +459,7 @@
             url: "/exeSql",
             data: dbForm._data,
             success: function (dataResult) {
+                dbConsole._data.message = dataResult.message;
                 if (!dataResult.success) {
                     layui.layer.alert(dataResult.message);
                 }
@@ -618,10 +619,10 @@
                 }
             }
         });
-        editor.on("cursorActivity", function () {
-            //调用显示提示
-            editor.showHint();
-        });
+        // editor.on("cursorActivity", function () {
+        //     //调用显示提示
+        //     editor.showHint();
+        // });
 
         window.editor.on("keyup", function (cm, event) {
             if (!cm.state.completionActive &&
