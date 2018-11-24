@@ -130,7 +130,7 @@
                         <!--<textarea name="code" id="code" placeholder="请输入内容" class="layui-textarea code" ></textarea>-->
                         <textarea id="code" name="code">SELECT * FROM</textarea>
 
-                        <blockquote class="layui-elem-quote" style="line-height: 10px">
+                        <blockquote class="layui-elem-quote" style="line-height: 10px" :style="{color: success? 'green': 'red' }">
                             {{message}}
                         </blockquote>
                         <!--<div style="width: 100%; overflow-x: scroll">-->
@@ -329,7 +329,7 @@
         data: {
             sqlType: "DQL",
             success: true,
-            message: "text"
+            message: ""
         },
         methods: {}
     });
@@ -460,6 +460,7 @@
             data: dbForm._data,
             success: function (dataResult) {
                 dbConsole._data.message = dataResult.message;
+                dbConsole._data.success = dataResult.success;
                 if (!dataResult.success) {
                     layui.layer.alert(dataResult.message);
                 }
