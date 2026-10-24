@@ -4,17 +4,17 @@
  */
 package com.umgsai.dao.generator.dao;
 
-import com.google.common.collect.Maps;
-import com.mysql.jdbc.Connection;
-import com.mysql.jdbc.PreparedStatement;
 import com.umgsai.dao.generator.data.DataResult;
 import com.umgsai.dao.generator.data.TableColumn;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -128,7 +128,7 @@ public class MySQLManager {
     }
 
     private static DataResult<Map<String, Object>> execute(String host, String port, String username, String password, String dbName, String sql) {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         DataResult dataResult = getConnection(host, port, username, password, dbName);
         if (!dataResult.isSuccess()) {
             return dataResult;
@@ -153,12 +153,12 @@ public class MySQLManager {
     }
 
     private static DataResult<Connection> getConnection(String host, String port, String username, String password, String dbName) {
-        String driver = "com.mysql.jdbc.Driver";
-        String url = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8", host, port, dbName);
+        String driver = "com.mysql.cj.jdbc.Driver";
+        String url = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true", host, port, dbName);
         Connection connection = null;
         try {
             Class.forName(driver);
-            connection = (Connection) DriverManager.getConnection(url, username, password);
+            connection = DriverManager.getConnection(url, username, password);
         } catch (Exception e) {
             String errorMsg = String.format("建立数据库连接失败！%s", e.getMessage());
             log.error(errorMsg, e);
